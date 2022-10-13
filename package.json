@@ -1,0 +1,19 @@
+{
+  "name": "synth-sound",
+  "version": "1.0.0",
+  "description": "",
+  "main": "tonepi.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/tonepi.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "tone": "^14.7.77"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
