@@ -1,8 +1,34 @@
 import * as Tone from 'tone'
 
-//create a synth and connect it to the main output (your speakers)
-const synth = new Tone.Synth().toDestination();
+const synth = new Tone.MonoSynth().toDestination();
 
-//play a middle 'C' for the duration of an 8th note
-synth.triggerAttackRelease("C4", "8n");
-console.log("start program")
+synth.volume.value = 5;
+
+function playSynth(event) {
+  Tone.context.resume();
+  //console.log(e.target.id);
+  let buttonID = event.target.id;
+  switch (buttonID) {
+    case "button1":
+      synth.triggerAttackRelease("C1", "1.5");
+      console.log('button 1')
+      break;
+    case "button2":
+      synth.triggerAttackRelease("C2", "1.5");
+      console.log('button 2')
+      break;
+    case "button3":
+      synth.triggerAttackRelease("C3", "1.5");
+      console.log('button 3')
+      break;
+
+    default:
+      break;
+  }
+}
+
+document.getElementById("button1").addEventListener("click", playSynth);
+
+document.getElementById("button2").addEventListener("click", playSynth);
+
+document.getElementById("button3").addEventListener("click", playSynth);
