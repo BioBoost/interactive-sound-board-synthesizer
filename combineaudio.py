@@ -1,3 +1,5 @@
+from pydub import AudioSegment
+from pydub.playback import play
 import time
 from synthesizer import Player, Synthesizer, Waveform
 import numpy as np
@@ -19,23 +21,13 @@ square = Synthesizer(osc1_waveform=Waveform.square, osc1_volume=1.0, use_osc2=Fa
 #generate a sawtooth wave sound
 sawtooth = Synthesizer(osc1_waveform=Waveform.sawtooth, osc1_volume=1.0, use_osc2=False)
 
-#combined = np.concatenate((sin.generate_constant_wave(440.0, 3.0),triangle.generate_constant_wave(440.0, 3.0)))
+sound1 = AudioSegment.from_file("./soundfiles/BassAmbSlap.mp3")
+sound2 = AudioSegment.from_file("./soundfiles/elgitar.wav")
+combined = sound1.overlay(sound2)
+combined.export("./soundfiles/combined.wav", format='wav')
 
-#player.play_wave(combined)
-
-#player.play_wave(square.generate_constant_wave(440.0, 3.0))
-
-#player.play_wave(sawtooth.generate_constant_wave(440.0, 3.0))
-
-#player.play_wave(triangle.generate_constant_wave(440.0, 3.0))
-
-#play chord
-chord = ["C3", "E3", "G3"]
-
-C = 261.63
-Chash = 277.18
-D = 293.66
-
-while True:
-    player.play_wave(triangle.generate_chord(chord , duration))
-    time.sleep(1)
+play(sound1)
+time.sleep(1)
+play(sound2)
+time.sleep(1)
+play(combined)
