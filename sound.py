@@ -5,8 +5,7 @@ import numpy as np
 player = Player()
 player.open_stream()
 
-def frequentie(pitch):
-    return 440 * 2^((pitch-9)/2)
+
 
 duration = 3.0
 
@@ -39,3 +38,6 @@ D = 293.66
 while True:
     player.play_wave(triangle.generate_chord(chord , duration))
     time.sleep(1)
+
+def frequentie(pitch):
+    return 440 * 2^((pitch-9)/2)

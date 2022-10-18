@@ -1,7 +1,6 @@
-import matplotlib.pyplot as plt
+from synthesizer import Player, Synthesizer, Waveform
 import numpy as np
 import math
-import IPython.display as ipd
 
 player = Player()
 player.open_stream()
@@ -45,9 +44,8 @@ def playmelody(notes, durs, harmonics):
     return output
 
 p = [88, 86, 78, 80, 85, 83, 74, 76, 83, 81, 73, 76, 81]
-d = np.multiply([.5, .5, 1, 1, .5, .5, 1, 1, .5, .5, 1, 1, 4], 0.6)
+d = np.multiply([.5, .5, 1, 1, .5, .5, 1, 1, .5, .5, 1, 1, 4], 0.55)
 h = [0.141, 0.200, 0.141, 0.112, 0.079, 0.056, 0.050, 0.035, 0.032, 0.020]
-print(d)
 x = playmelody(p, d, h)
 
 player.play_wave(x)

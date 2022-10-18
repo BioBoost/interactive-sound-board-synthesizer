@@ -7,8 +7,8 @@ import numpy as np
 player = Player()
 player.open_stream()
 
-def frequentie(pitch):
-    return 440 * 2^((pitch-9)/2)
+#def frequentie(pitch):
+#    return 440 * 2^((pitch-9)/2)
 
 duration = 3.0
 
@@ -21,13 +21,17 @@ square = Synthesizer(osc1_waveform=Waveform.square, osc1_volume=1.0, use_osc2=Fa
 #generate a sawtooth wave sound
 sawtooth = Synthesizer(osc1_waveform=Waveform.sawtooth, osc1_volume=1.0, use_osc2=False)
 
-sound1 = AudioSegment.from_file("./soundfiles/BassAmbSlap.mp3")
+#load files from soundfiles
+sound = AudioSegment.from_file("./soundfiles/BassAmbSlap.mp3")
 sound2 = AudioSegment.from_file("./soundfiles/elgitar.wav")
-combined = sound1.overlay(sound2)
-combined.export("./soundfiles/combined.wav", format='wav')
 
-play(sound1)
+#overlay the sound
+
+
+#test sound bass
+volume = 0
 time.sleep(1)
-play(sound2)
-time.sleep(1)
-play(combined)
+#play louder music
+while True:
+    volume += 5
+    play(sound + volume)
