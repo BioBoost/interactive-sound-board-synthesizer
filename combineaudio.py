@@ -4,8 +4,8 @@ import time
 from synthesizer import Player, Synthesizer, Waveform
 import numpy as np
 
-player = Player()
-player.open_stream()
+#player = Player()
+#player.open_stream()
 
 #def frequentie(pitch):
 #    return 440 * 2^((pitch-9)/2)
