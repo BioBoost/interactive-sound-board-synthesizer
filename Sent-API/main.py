@@ -7,10 +7,6 @@ import paho.mqtt.client as mqtt
 import ctypes
 
 
-
-
-
-
 #Voor later expand 
 def run(): 
       mqtt = MQTT("mqtt.devbit.be",1883, 60)
@@ -21,26 +17,21 @@ def run():
 
 
 #Make a class to save the instance 
-class Save:
+class ESP:
       #Constructor not needed we get and set values 
 
     def get_volume(self): 
         return str(self.__volume)
 
-    def get_pitch1(self): 
-        return self.__pitch1
-
-    def get_pitch2(self): 
-        return self.__pitch2
+    def get_pitch(self): 
+        return self.__pitch
 
     def set_volume(self, volume): 
         self.__volume = volume
 
-    def set_pitch1(self, pitch1): 
-        self.__pitch1 = pitch1
+    def set_pitch(self, pitch): 
+        self.__pitch = pitch
 
-    def set_pitch1(self, pitch2): 
-        self.__pitch2 = pitch2
     
 #Call the values
 import ctypes
@@ -56,12 +47,12 @@ print(ActualValue)
 
 
 client = mqtt.Client()
-save = Save()
+save = ESP()
 
 client.connect("mqtt.devbit.be",1883,60)
 client.subscribe("test/soundboard/esp1")
 client.subscribe("test/soundboard/esp2")
-#client.subscribe("test/soundboard/esp2")
+#client.subscribe("test/soundboard/esp3")
 
 def on_connect(client, userdata, flags, rc):
   print("Connected with result code "+str(rc))
@@ -96,7 +87,7 @@ while(True):
       print('Buzzy...')
       #Get the memory address
       print(save.get_volume)
-      print(save.get_pitch1)
+      print(save.get_pitch)
       
       time.sleep(1)
     

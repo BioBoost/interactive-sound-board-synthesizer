@@ -1,10 +1,5 @@
-# defines a node in a singly linked list
-
-import numpy as np
-import random as random
 import paho.mqtt.client as mqtt
 
-# defines a singly linked list
 class MQTT:
     #De values we define from the main 
     def __init__(self, broker = None, port = None, stopseconds = None):

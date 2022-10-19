@@ -9,7 +9,6 @@ import numpy as np
 
 #def frequentie(pitch):
 #    return 440 * 2^((pitch-9)/2)
-
 duration = 3.0
 
 #generate a sawtooth wave sound

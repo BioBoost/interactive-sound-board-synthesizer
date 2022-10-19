@@ -3,66 +3,108 @@ from synthesizer import Player, Synthesizer, Waveform
 import numpy as np
 import random as random
 import paho.mqtt.client as mqtt
+#For address calling
+import ctypes
+#import the MQTT class
+#from class_sent import MQTT
 
-# This is the Subscriber
-#define volume
-volume = 0
+player = Player()
+player.open_stream()
+sin = Synthesizer(osc1_waveform=Waveform.sine, osc1_volume=1.0, use_osc2=False)
+
+def playChords():
+	chord =[329.63, 293.66, 369.9 , 277.18,246.94,293.66,329.63,493.88,440.00,277.18,329.63,440.00]
+	for note in chord:
+		sin._osc1._volume = float(save.getVolume())
+		player.play_wave(sin.generate_constant_wave(note, 0.5))
+
+#Voor later expand 
+def run(): 
+      mqtt = MQTT("mqtt.devbit.be",1883, 60)
+      mqtt.subcribe("test/soundboard/esp1", "test/soundboard/esp2", "test/soundboard/esp3")
+      mqtt.on_message()
+      mqtt.on_connect()
+      #Run the code run()
+
+
+#Make a class to save the instance 
+class ESP:
+    #default waarde 1 
+	def __init__(self):
+		self.__volume = 1
+		self.__duration = 1
+		self.__pitch = 1 #afblijven van de pitch hier moet code nog voor getest worden
+
+	def setVolume(self , volume):
+		self.__volume = volume
+		return self
+
+	def setDuration(self , duration):
+		self.__duration = duration
+		return self
+
+	def setPitch(self , pitch):
+		self.__pitch = pitch
+		return self
+
+	def getVolume(self):
+		return self.__volume
+
+	def getDuration(self):
+		return self.__duration
+
+	def getPitch(self):
+		return self.__pitch
+
+    
+
+#initialize the variable 
+Volume = 0
+#Get the memory address of volume
+MemoryAddressVolume=id(Volume)
+
+print(MemoryAddressVolume)
+#Get the value at at memory address that was 4
+ActualValue=ctypes.cast(MemoryAddressVolume,ctypes.py_object).value
+print(ActualValue)
+
+
+client = mqtt.Client()
+save = ESP()
+
+client.connect("mqtt.devbit.be",1883,60)
+client.subscribe("test/soundboard/esp1")
+client.subscribe("test/soundboard/esp2")
+#client.subscribe("test/soundboard/esp3")
 
 def on_connect(client, userdata, flags, rc):
   print("Connected with result code "+str(rc))
-  client.subscribe("test/soundboard/esp1")
+ 
+  
+def on_message(client, userdata, msg):
+    if(msg.topic == 'test/soundboard/esp1'):
+          #save.setVolume(msg.payload) 
+          print(f"Message received [{msg.topic}]: {msg.payload}")
+    if(msg.topic == 'test/soundboard/esp2'):
+          #save.setDuration(msg.payload) 
+          print(f"Message received [{msg.topic}]: {msg.payload}")
 
-def on_message(client, userdata, msg, topic):
-  if msg.payload.decode():
-    print(msg.payload.decode())
-    volume = msg.payload.decode()
-    client.disconnect()
-    return volume
-    
-client = mqtt.Client()
-client.connect("mqtt.devbit.be",1883,60)
+    if(msg.topic == 'test/soundboard/esp3'):
+          #save.setPitch(msg.payload)
+          print(f"Message received [{msg.topic}]: {msg.payload}")
 
+  
+
+client.loop_start()
+
+# we call from client object , the on_connect method and we overwrited
 client.on_connect = on_connect
 client.on_message = on_message
 
-client.loop_forever()
 
-#stream audio
-player = Player()
-player.open_stream()
-
-
-duration = 0.3
-#generate a sawtooth wave sound
-triangle = Synthesizer(osc1_waveform=Waveform.triangle, osc1_volume=1.0, use_osc2=False)
-#generate a sin wave sound
-sin = Synthesizer(osc1_waveform=Waveform.sine, osc1_volume=1.0, use_osc2=False)
-#generate a square wave sound
-square = Synthesizer(osc1_waveform=Waveform.square, osc1_volume=1.0, use_osc2=False)
-#generate a sawtooth wave sound
-sawtooth = Synthesizer(osc1_waveform=Waveform.sawtooth, osc1_volume=1.0, use_osc2=False)
-
-def fitvalueInToVolume():
-    return 0
-
-#play chord
-def pitch2frequentie(pitch): 
-    return 2**((pitch-69)/12) * 440 # See https://en.wikipedia.org/wiki/Pitch_(music)#Labeling_pitches
-
-nokia = [88, 86, 78, 80, 85, 83, 74, 76, 83, 81, 73, 76, 81]
-pitch2 = [50, 60, 70, 80, 90, 80, 100, 20, 10, 81, 73, 76, 81]
-chord =[329.63, 293.66, 369.9 , 277.18,246.94,293.66,329.63,493.88,440.00,277.18,329.63,440.00]
-chord = np.array(chord)
-i = 0
-print(chord)
-
-
-while True:
-    for note in chord:
-        sin._osc1._volume = volume
-        player.play_wave(sin.generate_constant_wave(note, random.uniform(0, 1)))
-    
-#while True:
-    #print("check")
-    #i = (i + 1) % len(chord)
-    #player.play_wave(sin.generate_chord(chord , duration))
+while(True):
+      print('Buzzy...')
+      #Get the memory address
+      print(save.getVolume())
+      print(save.getDuration())
+      playChords()
