@@ -6,17 +6,26 @@ import paho.mqtt.client as mqtt
 #For address calling
 import ctypes
 #import the MQTT class
-#from class_sent import MQTT
+#from mqttclient import MQTT
 
 player = Player()
 player.open_stream()
 sin = Synthesizer(osc1_waveform=Waveform.sine, osc1_volume=1.0, use_osc2=False)
 
-def playChords():
+currentChord = 0
+
+#deze code trekt op nieks ma tis een gewone om iets te testen
+def playChords(currentChord):
 	chord =[329.63, 293.66, 369.9 , 277.18,246.94,293.66,329.63,493.88,440.00,277.18,329.63,440.00]
-	for note in chord:
-		sin._osc1._volume = float(save.getVolume())
-		player.play_wave(sin.generate_constant_wave(note, 0.5))
+	
+	if save.getChord() >= len(chord):
+		save.setChord(0)
+	
+	#niet aan raken tot mqtt in orde is
+	sin._osc1._volume = float(save.getVolume())
+	player.play_wave(sin.generate_constant_wave(chord[save.getChord()], save.getDuration()))
+	save.setChord(save.getChord() + 1)
+	print(save.getChord())
 
 #Voor later expand 
 def run(): 
@@ -34,6 +43,7 @@ class ESP:
 		self.__volume = 1
 		self.__duration = 1
 		self.__pitch = 1 #afblijven van de pitch hier moet code nog voor getest worden
+		self.__chord = 0
 
 	def setVolume(self , volume):
 		self.__volume = volume
@@ -56,6 +66,12 @@ class ESP:
 	def getPitch(self):
 		return self.__pitch
 
+	def getChord(self):
+		return self.__chord
+	
+	def setChord(self, val):
+		self.__chord = val
+		return self
     
 
 #initialize the variable 
@@ -83,10 +99,10 @@ def on_connect(client, userdata, flags, rc):
   
 def on_message(client, userdata, msg):
     if(msg.topic == 'test/soundboard/esp1'):
-          #save.setVolume(msg.payload) 
+          save.setVolume(msg.payload) 
           print(f"Message received [{msg.topic}]: {msg.payload}")
     if(msg.topic == 'test/soundboard/esp2'):
-          #save.setDuration(msg.payload) 
+          save.setDuration(msg.payload) 
           print(f"Message received [{msg.topic}]: {msg.payload}")
 
     if(msg.topic == 'test/soundboard/esp3'):
@@ -107,4 +123,4 @@ while(True):
       #Get the memory address
       print(save.getVolume())
       print(save.getDuration())
-      playChords()
+      playChords(currentChord)
