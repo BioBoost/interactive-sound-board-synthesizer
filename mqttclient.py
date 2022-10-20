@@ -23,15 +23,15 @@ class MQTT:
 
     def on_message(self ,client, userdata, msg):
         if(msg.topic == 'test/soundboard/esp1'):
-            self.topic1 = msg.payload.decode()
+            self.__topic1 = msg.payload.decode()
             print(f"Message received [{msg.topic}]: {msg.payload}")
         
         if(msg.topic == 'test/soundboard/esp2'):
-            self.topic2 = msg.payload.decode()
+            self.__topic2 = msg.payload.decode()
             print(f"Message received [{msg.topic}]: {msg.payload}")
 
         if(msg.topic == 'test/soundboard/esp3'):
-            self.topic3 = msg.payload.decode()
+            self.__topic3 = msg.payload.decode()
             print(f"Message received [{msg.topic}]: {msg.payload}")
 
         if(msg.topic == 'test/soundboard/esp4'):

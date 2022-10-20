@@ -33,19 +33,13 @@ class Synthesize:
 	def getPitch(self):
 		return self.__pitch
 
-	def getChord(self):
-		return self.__chord
-	
-	def setChord(self, val):
-		self.__chord = val
-		return self
-
 	def playChords(self):
-		chord =[329.63, 293.66, 369.9 , 277.18,246.94,293.66,329.63,493.88,440.00,277.18,329.63,440.00]
-		if self.getChord() >= len(chord):
-			self.setChord(0)
+		
+		Octave4 = [261 , 277.18 , 293.66 , 311.13 , 329.63 , 349.23 , 369.99 , 392 , 415.3 , 440 , 466.16 , 493.88]
+		if self.__chord >= len(Octave4):
+			self.__chord = 0
 		
 		#niet aan raken tot mqtt in orde is
 		self.__sin._osc1._volume = float(self.getVolume())
-		self.__player.play_wave(self.__sin.generate_constant_wave(chord[self.getChord()], self.getDuration()))
-		self.setChord(self.getChord() + 1)
+		self.__player.play_wave(self.__sin.generate_constant_wave(Octave4[self.__chord], self.getDuration()))
+		self.__chord += 1
