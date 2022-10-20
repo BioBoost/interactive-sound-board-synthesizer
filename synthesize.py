@@ -1,10 +1,11 @@
 from synthesizer import Player, Synthesizer, Waveform
 import numpy as np
 
+
 class Synthesize:
 	def __init__(self):
 		self.__volume = 0.5
-		self.__duration = 0.5
+		self.__duration = 1
 		self.__pitch = 1 #afblijven van de pitch hier moet code nog voor getest worden
 		self.__currentchord = 0
 		self.__chord = [1,1]
@@ -46,8 +47,9 @@ class Synthesize:
 		return self
 
 	def playChords(self):
-		#Octave4 = [256.8912 , 272.13184 , 288.3152 , 305.5984 , 323.6672 , 342.99296 , 363.26144 , 384.944 , 407.88352 , 432.08 , 457.84768 , 485.02944]
-		for note in self.__chord:
+		Octave4 = [256.8912 , 272.13184 , 288.3152 , 305.5984 , 323.6672 , 342.99296 , 363.26144 , 384.944 , 407.88352 , 432.08 , 457.84768 , 485.02944]
+		Octave2 = [64.2228 , 68.03296 , 72.0788 , 76.3996 , 80.91536 , 85.74824 , 90.81536 , 96.236 , 101.97088 , 108.02 , 114.46192 , 121.25736]
+		for note in Octave2:
 			self.__sin._osc1._volume = float(self.getVolume())
 			self.__player.play_wave(self.__sin.generate_constant_wave(note, self.getDuration()))
 			self.__currentchord += 1
@@ -56,11 +58,12 @@ class Synthesize:
 	def playChordstest(self):
 		
 		Octave4 = [256.8912 , 272.13184 , 288.3152 , 305.5984 , 323.6672 , 342.99296 , 363.26144 , 384.944 , 407.88352 , 432.08 , 457.84768 , 485.02944]
-
+		Octave2 = [64.2228 , 68.03296 , 72.0788 , 76.3996 , 80.91536 , 85.74824 , 90.81536 , 96.236 , 101.97088 , 108.02 , 114.46192 , 121.25736]
 		if self.__currentchord >= len(Octave4):
 			self.__currentchord = 0
 		
 		#niet aan raken tot mqtt in orde is
 		self.__sin._osc1._volume = float(self.getVolume())
 		self.__player.play_wave(self.__sin.generate_constant_wave(Octave4[self.__currentchord], self.getDuration()))
+		#self.__player.play_wave(self.__sin.generate_constant_wave(Octave2[self.__currentchord], self.getDuration()))
 		self.__currentchord += 1
