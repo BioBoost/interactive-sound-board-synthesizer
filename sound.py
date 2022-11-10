@@ -8,7 +8,7 @@ synth = Synthesize()
 mqtt = MQTT("mqtt.devbit.be",1883, 60)
 mqtt.subcribe("test/soundboard/esp1", "test/soundboard/esp2", "test/soundboard/esp3", "test/soundboard/esp4")
 mqtt.start()
-
+#e
 while(True):
 	print('Buzzy...')
 	#get values
