@@ -1,18 +1,23 @@
 # sound board interactive audio
 
-## installation
+## installation & setup
 
-### synthesizer and audio packeges
-```bash
+### install synthesizer
+`bash
 python3 -m pip install synthesizer
+`
+
+### install audio package
+`bash
 apt install portaudio19-dev
 pip install pyaudio
-```
+`
 
-```bash
+### install mqtt
+`bash
 pip install paho-mqtt
-```
-## before starting
+`
+### before starting
 
 ```text
 pulseaudio -k
