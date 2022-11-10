@@ -11,8 +11,13 @@ mqtt.start()
 
 while(True):
 	print('Buzzy...')
-	synth.selectChords(mqtt.getTopic1())
-	print(synth.getVolume())
-	print(synth.getDuration())
+	#get values
+	synth.setEsp1(mqtt.getTopic1())
+	synth.setEsp2(mqtt.getTopic2())
+	synth.setEsp3(mqtt.getTopic3())
+	synth.setEsp4(mqtt.getTopic4())
+	#select notes
+	synth.selectChords()
+	#play notes
 	synth.playChords()
 	print('')
