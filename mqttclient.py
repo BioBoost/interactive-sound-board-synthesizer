@@ -1,13 +1,12 @@
 import paho.mqtt.client as mqtt
-from synthesize import Synthesize
 
 class MQTT:
-    #De values we define from the main 
+    #init class MQTT
     def __init__(self, broker , port , stopseconds):
-        self.__topic1 = 1
-        self.__topic2 = 1
-        self.__topic3 = 1
-        self.__topic4 = 1
+        self.__topic1 = 0
+        self.__topic2 = 0
+        self.__topic3 = 0
+        self.__topic4 = 0
         self.__client = mqtt.Client()
         self.__client.connect(broker, port, stopseconds)
         
@@ -19,7 +18,7 @@ class MQTT:
         self.__client.subscribe(topic4)
 
     def on_connect(self , client, userdata, flags, rc):
-         print("Connected with result code "+ str(rc))
+         print(f"Connected with result code {rc}")
 
     def on_message(self ,client, userdata, msg):
         if(msg.topic == 'test/soundboard/esp1'):

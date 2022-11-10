@@ -2,12 +2,19 @@
 
 ## installation
 
+### synthesizer and audio packeges
 ```bash
 python3 -m pip install synthesizer
 apt install portaudio19-dev
 pip install pyaudio
 ```
 
+```bash
+pip install paho-mqtt
+```
+## before starting
+
 ```text
-testing a thingy
+pulseaudio -k
+pulseaudio -D
 ```
