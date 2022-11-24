@@ -13,13 +13,9 @@ mqtt.subscribe("test/devices/")
 mqtt.start()
 
 while(True):
-	mqtt.sensorStart("58:CF:79:E3:62:70")
-	time.sleep(1)
-	mqtt.sensorStop("58:CF:79:E3:62:70")
-	time.sleep(1)
-    #print(mqtt.getAvailableDevices())
-    #print(mqtt.getTopics())
-    #time.sleep(1)
+    print(mqtt.getAvailableDevices())
+    print(mqtt.getTopics())
+    time.sleep(1)
 	#print('Destroying audio demons')
 	#get values
 	#synth.setEsp1(mqtt.getTopic1())
