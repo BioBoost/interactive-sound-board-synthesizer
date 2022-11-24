@@ -1,11 +1,13 @@
 # sound board interactive audio
 
+## introduction
+
 ## installation & setup
 
 ### install synthesizer
-`bash
+```bash
 python3 -m pip install synthesizer
-`
+```
 
 ### install audio package
 ```bash
@@ -14,9 +16,9 @@ pip install pyaudio
 ```
 
 ### install mqtt
-`bash
+```bash
 pip install paho-mqtt
-`
+```
 
 ### before starting
 ```text

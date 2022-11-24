@@ -82,4 +82,4 @@ class Synthesize:
 	def playNotes(self):
 		for note in self.__notes:
 			self.__sin._osc1._volume = float(self.getVolume())
-			self.__player.play_wave(self.__sin.generate_constant_wave(note, self.__esp3))
+			self.__player.play_wave(self.__sin.generate_constant_wave(note, self.__esp4))
