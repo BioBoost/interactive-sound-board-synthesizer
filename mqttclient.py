@@ -10,7 +10,7 @@ class MQTT:
         self.__values = []
         self.__client = mqtt.Client()
         self.__client.connect(broker, port, stopseconds)
-    
+        
     def selectDevices(self , device):
         self.__devices.append(device)
         self.devicesTopics(device)
@@ -34,10 +34,10 @@ class MQTT:
             self.sensorStop(self.__devices[i])
 
     def sensorStart(self,device):
-        self.publisch(f'test/{device}/status',True)
+        self.publisch(f"test/{device}/status",1)
 
     def sensorStop(self,device):
-        self.publisch(f'test/{device}/status',False)
+        self.publisch(f"test/{device}/status",0)
 
     def subscribe(self, *topics):
         #sub to all given topics
@@ -48,7 +48,8 @@ class MQTT:
             if topic not in self.__topics and 'devices' not in topic:
                 self.__topics.append(topic)
             
-    def publisch(self,message,topic):
+    def publisch(self,topic,message):
+        print(f'publish {message} to {topic}')
         self.__client.publish(topic,message)
 
     def sensor_message(self ,client, userdata, msg, device):
