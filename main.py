@@ -12,10 +12,10 @@ mqtt.subscribe("test/devices/")
 #subscribe to all topics
 mqtt.start()
 
-while(True):
-    print(mqtt.getDevices())
-    print(mqtt.getTopics())
-    time.sleep(1)
+#while(True):
+    #print(mqtt.getAvailableDevices())
+    #print(mqtt.getTopics())
+    #time.sleep(1)
 	#print('Destroying audio demons')
 	#get values
 	#synth.setEsp1(mqtt.getTopic1())
