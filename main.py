@@ -6,16 +6,20 @@ import time
 synth = Synthesize()
 
 #mqtt connect to broker
-mqtt = MQTT("mqtt.devbit.be",1883,60)
+mqtt = MQTT("172.16.102.216",1883,60)
 #get all available devices
 mqtt.subscribe("test/devices/")
-#subscribe to all topics
 mqtt.start()
 
 while(True):
-    print(mqtt.getAvailableDevices())
-    print(mqtt.getTopics())
-    time.sleep(1)
+    print("")
+    #print(f'all available devices{mqtt.getAvailableDevices()}')
+    mqtt.selectAllDevices()
+    #print(f'all connected devices {mqtt.getDevices()}')
+    #print(f'all topics {mqtt.getTopics()}')
+    mqtt.sensorValues()
+    print("")
+    time.sleep(10)
 	#print('Destroying audio demons')
 	#get values
 	#synth.setEsp1(mqtt.getTopic1())
