@@ -1,21 +1,19 @@
 import paho.mqtt.client as mqtt
 import numpy as np
-from synthesize import Synthesize
 import time
+import json
 
 class MQTT:
     #init class MQTT
-    def __init__(self, broker , port , stopseconds):
+    def __init__(self, broker , port , stopseconds, synth):
         self.__availableDevices = []
         self.__activeDevices = []
         self.__topics = []
         self.__unfiltered_values = []
         self.__values = []
-        self.__avg = 5
         self.__notes = []
         self.__status = False
-        self.__frequentie_mac = ""
-        self.__synth = Synthesize()
+        self.__synth = synth
         self.__client = mqtt.Client()
         self.__client.connect(broker, port, stopseconds)
 
@@ -28,6 +26,8 @@ class MQTT:
         if device not in self.__activeDevices:
             self.__activeDevices.append(device)
             self.devicesTopics(device)
+            self.__availableDevices.remove(device)
+            time.sleep(0.1)
 
     def devicesTopics(self,device):
         #sub to all device topics
@@ -37,6 +37,7 @@ class MQTT:
     
     def sensorValues(self):
         currentDevice = 0
+        avg = 0
         for device in self.__activeDevices:
             if(currentDevice == len(self.__activeDevices)):
                 currentDevice = 0
@@ -45,21 +46,24 @@ class MQTT:
                 self.__status = True
             print(len(self.__unfiltered_values))
             if(len(self.__unfiltered_values) == 10):
-                print("getting avg")
+                #print("getting avg")
                 for j in range(0, len(self.__unfiltered_values)):
                     self.__unfiltered_values[j] = float(self.__unfiltered_values[j])
-                if(len(self.__notes) < currentDevice + 1):
-                    self.__notes.append(np.average(self.__unfiltered_values))
-                else:
-                    self.__notes[currentDevice] = np.average(self.__unfiltered_values)
+                #if(len(self.__notes) < currentDevice + 1):
+                #    self.__notes.append(np.average(self.__unfiltered_values))
+                #else:
+                #    self.__notes[currentDevice] = np.average(self.__unfiltered_values)
                 #print(f'{self.__notes}')
+                avg = np.average(self.__unfiltered_values)
+                #print(f'avg is: {avg}')
+                self.__synth.SortNotes(avg,currentDevice)
                 self.sensorStop(device)
-                time.sleep(0.1)
                 self.__unfiltered_values.clear()
                 currentDevice += 1
-                #print(f'notes {self.__notes}')
-                self.__synth.PlayNotes(self.__notes)
+                #reset values
                 self.__status = False
+                avg = 0
+                time.sleep(0.001)
 
     def sensorStart(self,device):
         self.publisch(f"test/{device}/status",1)
@@ -69,6 +73,15 @@ class MQTT:
 
     def SendAllAvailableDevices(self):
         self.publisch(f"test/frontend/",self.__availableDevices)
+
+    def SendConfig(self):
+        config = {
+            'avaiabledevices': self.__availableDevices,
+            'activedevices': self.__activeDevices,
+            'volume': self.__synth.getVolume(),
+            'frequentie': self.__synth.getFrequnetie()
+        }
+        self.__client.publish("test/config", payload=json.dumps(config), retain=True)
 
     def subscribe(self, *topics):
         #sub to all given topics
@@ -93,7 +106,7 @@ class MQTT:
         if('sensor' in msg.topic):
             if(len(self.__unfiltered_values) < 10):
                 self.__unfiltered_values.append(msg.payload.decode())
-                print(f"value from sensor [{msg.topic}]: {msg.payload}")
+                #print(f"value from sensor [{msg.topic}]: {msg.payload}")
 
         #online device message from mqtt
         if('test/devices/' == msg.topic):
@@ -105,9 +118,6 @@ class MQTT:
         if('wave' in msg.topic):
             self.__synth.SetWave(msg.payload.decode())
             print(f"changing wave to [{msg.payload.decode()}]")
-
-        if('role' in msg.topic):
-                self.__synth.SetRoleFrequentie(msg.payload.decode())
 
         if('test/frontend/available' == msg.topic):
                 self.SendAllAvailableDevices()
@@ -123,6 +133,9 @@ class MQTT:
 
     def getAvailableDevices(self):
         return self.__availableDevices
+
+    def getSynth(self):
+        return self.__synth
 
     def start(self):
         self.__client.loop_start()

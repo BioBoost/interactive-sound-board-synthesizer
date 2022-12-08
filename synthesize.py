@@ -35,25 +35,25 @@ class Synthesize:
 	def getVolume(self):
 		return self.__volume
 
-	def SortNotes(self, notes):
+	def setFrequentie(self , frequentie):
+		self.__frequentie = frequentie
+		return self
+
+	def getFrequnetie(self):
+		return self.__frequentie
+
+	def SortNotes(self, value,index):
 		#round de waarde en zet om naar een getal tussen 0 - 12
-		#print(len(notes))
-		for i in range(len(notes)):
-			note = round(notes[i] * 12)
-			if(len(self.__notes) < i + 1):
-				self.__notes.append( self.__octave4[int(note)])
-			else:
-				self.__notes[i] =  self.__octave4[int(note)]
+		#print(f'avg value is: {value}')
+		#print(f'index is: {index}')
+		if(len(self.__notes) < index + 1):
+			self.__notes.append(self.__octave4[round(value * 12)])
+		else:
+			self.__notes[index] =  self.__octave4[round(value * 12)]
 
-
-	def PlaySingleNote(self, value):
-		note = round(float(value) * 12)
-		note = self.__octave4[int(note)]
-		self.__wave._osc1._volume = float(self.getVolume())
-		self.__player.play_wave(self.__wave.generate_constant_wave(note, self.__frequentie))
-
-	def PlayNotes(self, notes):
-		self.SortNotes(notes)
-		for note in self.__notes:
-			self.__wave._osc1._volume = float(self.getVolume())
-			self.__player.play_wave(self.__wave.generate_constant_wave(note, self.__frequentie))
+	def PlayNotes(self):
+		#print(self.__notes)
+		if len(self.__notes) is not 0:
+			for note in self.__notes:
+				self.__wave._osc1._volume = float(self.getVolume())
+				self.__player.play_wave(self.__wave.generate_constant_wave(note, self.__frequentie))

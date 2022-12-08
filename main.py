@@ -6,7 +6,7 @@ import time
 synth = Synthesize()
 
 #mqtt connect to broker
-mqtt = MQTT("pi-of-terror",1883,60)
+mqtt = MQTT("pi-of-terror",1883,60,synth)
 #get all available devices
 mqtt.subscribe("test/devices/")
 mqtt.start()
@@ -14,5 +14,7 @@ mqtt.start()
 while(True):
     mqtt.selectAllDevices()
     mqtt.sensorValues()
+    #mqtt.SendConfig()
+    synth.PlayNotes()
     print("")
-    time.sleep(0.01)
+    time.sleep(0.001)
