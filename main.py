@@ -8,13 +8,14 @@ synth = Synthesize()
 #mqtt connect to broker
 mqtt = MQTT("pi-of-terror",1883,60,synth)
 #get all available devices
-mqtt.subscribe("test/devices/")
+mqtt.subscribe("test/devices/","test/frontend/volume",'test/frontend/octave','test/frontend/wave','test/frontend/frequency','test/frontend')
 mqtt.start()
 
+mqtt.SendConfig()
+
 while(True):
-    mqtt.selectAllDevices()
     mqtt.sensorValues()
-    #mqtt.SendConfig()
     synth.PlayNotes()
-    print("")
-    time.sleep(0.001)
+    #if(len(mqtt.getDevices()) != 0):
+    #    print(f'all devices {mqtt.getDevices()}')
+    time.sleep(0.08)

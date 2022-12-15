@@ -11,72 +11,84 @@ class MQTT:
         self.__topics = []
         self.__unfiltered_values = []
         self.__values = []
-        self.__notes = []
+        self.__currentDevice = 0
+        self.__currentMAC = ""
+
+        self.__gettingAVG = False
+
+        self.__readStatus = False
         self.__status = False
         self.__synth = synth
         self.__client = mqtt.Client()
         self.__client.connect(broker, port, stopseconds)
 
-    #test class while waiting for backend
-    def selectAllDevices(self):
-        for device in self.__availableDevices:
-            self.ActivateDevice(device)
-
     def ActivateDevice(self , device):
         if device not in self.__activeDevices:
-            self.__activeDevices.append(device)
             self.devicesTopics(device)
+            self.__activeDevices.append(device)
             self.__availableDevices.remove(device)
-            time.sleep(0.1)
+            time.sleep(1)
 
     def devicesTopics(self,device):
         #sub to all device topics
-        print(f'connecting to topics of {device}')
+        #print(f'connecting to topics of {device}')
         self.subscribe(f'test/{device}/sensor')
-        return self 
-    
+        return self
+
     def sensorValues(self):
-        currentDevice = 0
+        #if(len(self.__activeDevices) != 0):
+            #print(f'current length {len(self.__unfiltered_values)}')
+        if(self.__currentDevice >= len(self.__activeDevices)):
+                self.__currentDevice = 0
+
+        if(self.__status == False and len(self.__activeDevices) != 0):
+            self.sensorStart(self.__activeDevices[self.__currentDevice])
+            self.__currentMAC = self.__activeDevices[self.__currentDevice]
+            self.__status = True
+            self.__readStatus = True
+
+        if(len(self.__unfiltered_values) == 10):#and self.__readStatus == True
+            if(self.__currentDevice == len(self.__activeDevices)):
+                self.__currentDevice = 0
+            #self.__readStatus = False
+            self.sensorStop(self.__activeDevices[self.__currentDevice])
+            print('stopped reading values')
+            print(f'the values {self.__unfiltered_values}')
+            self.sensorAVG()
+            time.sleep(1)
+            #self.sensorAVG()
+            #time.sleep(1)
+        
+    def sensorAVG(self):
+        self.__gettingAVG = True
         avg = 0
-        for device in self.__activeDevices:
-            if(currentDevice == len(self.__activeDevices)):
-                currentDevice = 0
-            if(self.__status == False):
-                self.sensorStart(device)
-                self.__status = True
-            print(len(self.__unfiltered_values))
-            if(len(self.__unfiltered_values) == 10):
-                #print("getting avg")
-                for j in range(0, len(self.__unfiltered_values)):
-                    self.__unfiltered_values[j] = float(self.__unfiltered_values[j])
-                #if(len(self.__notes) < currentDevice + 1):
-                #    self.__notes.append(np.average(self.__unfiltered_values))
-                #else:
-                #    self.__notes[currentDevice] = np.average(self.__unfiltered_values)
-                #print(f'{self.__notes}')
-                avg = np.average(self.__unfiltered_values)
-                #print(f'avg is: {avg}')
-                self.__synth.SortNotes(avg,currentDevice)
-                self.sensorStop(device)
-                self.__unfiltered_values.clear()
-                currentDevice += 1
-                #reset values
-                self.__status = False
-                avg = 0
-                time.sleep(0.001)
+        #print("getting avg")
+        #dit is nodig om te avg te kunnen berekenen
+        for j in range(0, len(self.__unfiltered_values)):
+            self.__unfiltered_values[j] = float(self.__unfiltered_values[j])
+        avg = round(np.average(self.__unfiltered_values),2)
+        print(f'avg is: {avg}')
+        #print(self.__currentDevice)
+        self.__synth.SortNotes(avg,self.__currentDevice)
+        #self.sensorStop(device)
+        self.__unfiltered_values.clear()
+        self.__currentDevice += 1
+        #reset values
+        self.__status = False
+        avg = 0
+        self.__gettingAVG = False
+        time.sleep(0.0001)
 
     def sensorStart(self,device):
         self.publisch(f"test/{device}/status",1)
+        time.sleep(0.0001)
 
     def sensorStop(self,device):
         self.publisch(f"test/{device}/status",0)
-
-    def SendAllAvailableDevices(self):
-        self.publisch(f"test/frontend/",self.__availableDevices)
+        time.sleep(0.0001)
 
     def SendConfig(self):
         config = {
-            'avaiabledevices': self.__availableDevices,
             'activedevices': self.__activeDevices,
             'volume': self.__synth.getVolume(),
             'frequentie': self.__synth.getFrequnetie()
@@ -86,16 +98,19 @@ class MQTT:
     def subscribe(self, *topics):
         #sub to all given topics
         for topic in topics:
-            if topic not in self.__topics:
-                self.__client.subscribe(topic)
-                print(f"subscribed to {topic}")
-            #check if topic is not already in topics
-            if topic not in self.__topics and 'devices' not in topic:
-                self.__topics.append(topic)
-            
+            self.__client.subscribe(topic)
+            print(f"subscribed to {topic}")
+        time.sleep(0.001)
+
     def publisch(self,topic,message):
         print(f'publish {message} to {topic}')
         self.__client.publish(topic,message)
+        time.sleep(0.001)
+
+    def unSubscribe(self, *topics):
+        for topic in topics:
+            print(f'unsubscribing from {topic}')
+            self.__client.unsubscribe(topic)
 
     #result of connection to broker
     def on_connect(self , client, userdata, flags, rc):
@@ -103,25 +118,44 @@ class MQTT:
 
     def on_message(self ,client, userdata, msg):
         #sensor message from mqtt
-        if('sensor' in msg.topic):
-            if(len(self.__unfiltered_values) < 10):
-                self.__unfiltered_values.append(msg.payload.decode())
-                #print(f"value from sensor [{msg.topic}]: {msg.payload}")
-
         #online device message from mqtt
         if('test/devices/' == msg.topic):
             if msg.payload.decode() not in self.__availableDevices:
                 self.__availableDevices.append(msg.payload.decode())
+                self.ActivateDevice(msg.payload.decode())
                 print(f"device [{msg.payload.decode()}] is online")
-        
+                self.SendConfig()
+
+        if(f'sensor' in msg.topic and self.__status == True): #and self.__status == True
+                if(len(self.__unfiltered_values) != 10):#and self.__readStatus == True
+                    self.__unfiltered_values.append(msg.payload.decode())
+                time.sleep(0.001)
+                
         #message to change wave of the synth
-        if('wave' in msg.topic):
+        if('test/frontend/wave' in msg.topic):
             self.__synth.SetWave(msg.payload.decode())
-            print(f"changing wave to [{msg.payload.decode()}]")
+            print(f"changing wave to {msg.payload.decode()}")
+            self.SendConfig()
 
-        if('test/frontend/available' == msg.topic):
-                self.SendAllAvailableDevices()
+        if('test/frontend/volume' == msg.topic):
+            self.__synth.setVolume(float(msg.payload.decode()) * 0.01)
+            print(f'changing volume {float(msg.payload.decode()) * 0.01}')
+            self.SendConfig()
 
+        if('test/frontend/frequency' == msg.topic):
+            self.__synth.setFrequentie(float(msg.payload.decode()) * 0.01)
+            print(f'changing Frequentie {float(msg.payload.decode()) * 0.01}')
+            self.SendConfig()
+        
+        if('test/frontend/octave' == msg.topic):
+            self.__synth.SetOctave(msg.payload.decode())
+            print(f"changing Octave to [{msg.payload.decode()}]")
+            self.SendConfig()
+
+        if('test/frontend' == msg.topic):
+            self.SendConfig()
+            print(f"sending config to new user")
+        
     def getTopics(self):
         return self.__topics
 
