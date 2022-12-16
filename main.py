@@ -18,4 +18,4 @@ while(True):
     synth.PlayNotes()
     #if(len(mqtt.getDevices()) != 0):
     #    print(f'all devices {mqtt.getDevices()}')
-    time.sleep(0.08)
+    #time.sleep(1)

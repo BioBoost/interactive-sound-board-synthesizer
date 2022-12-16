@@ -14,7 +14,11 @@ class MQTT:
         self.__currentDevice = 0
         self.__currentMAC = ""
 
+        self.__settingAVG = 10
         self.__gettingAVG = False
+
+        self.__starttime = 0
+        self.__currenttime = 0
 
         self.__readStatus = False
         self.__status = False
@@ -27,7 +31,7 @@ class MQTT:
             self.devicesTopics(device)
             self.__activeDevices.append(device)
             self.__availableDevices.remove(device)
-            time.sleep(1)
+            #time.sleep(1)
 
     def devicesTopics(self,device):
         #sub to all device topics
@@ -38,16 +42,17 @@ class MQTT:
     def sensorValues(self):
         #if(len(self.__activeDevices) != 0):
             #print(f'current length {len(self.__unfiltered_values)}')
+        #self.__currenttime = time.time()
+
         if(self.__currentDevice >= len(self.__activeDevices)):
                 self.__currentDevice = 0
 
         if(self.__status == False and len(self.__activeDevices) != 0):
+            #self.__starttime = time.time()
             self.sensorStart(self.__activeDevices[self.__currentDevice])
-            self.__currentMAC = self.__activeDevices[self.__currentDevice]
             self.__status = True
-            self.__readStatus = True
 
-        if(len(self.__unfiltered_values) == 10):#and self.__readStatus == True
+        if(len(self.__unfiltered_values) == self.__settingAVG):#and self.__readStatus == True
             if(self.__currentDevice == len(self.__activeDevices)):
                 self.__currentDevice = 0
             #self.__readStatus = False
@@ -55,8 +60,6 @@ class MQTT:
             print('stopped reading values')
             print(f'the values {self.__unfiltered_values}')
             self.sensorAVG()
-            time.sleep(1)
-            #self.sensorAVG()
             #time.sleep(1)
         
     def sensorAVG(self):
@@ -127,32 +130,33 @@ class MQTT:
                 self.SendConfig()
 
         if(f'sensor' in msg.topic and self.__status == True): #and self.__status == True
-                if(len(self.__unfiltered_values) != 10):#and self.__readStatus == True
-                    self.__unfiltered_values.append(msg.payload.decode())
+                if(len(self.__unfiltered_values) != self.__settingAVG):#and self.__readStatus == True
+                   self.__unfiltered_values.append(msg.payload.decode())
+                   print(f"value [{msg.payload.decode()}] received from sensor")
                 time.sleep(0.001)
-                
+        
         #message to change wave of the synth
-        if('test/frontend/wave' in msg.topic):
+        elif('test/frontend/wave' in msg.topic):
             self.__synth.SetWave(msg.payload.decode())
             print(f"changing wave to {msg.payload.decode()}")
             self.SendConfig()
 
-        if('test/frontend/volume' == msg.topic):
+        elif('test/frontend/volume' == msg.topic):
             self.__synth.setVolume(float(msg.payload.decode()) * 0.01)
             print(f'changing volume {float(msg.payload.decode()) * 0.01}')
             self.SendConfig()
 
-        if('test/frontend/frequency' == msg.topic):
+        elif('test/frontend/frequency' == msg.topic):
             self.__synth.setFrequentie(float(msg.payload.decode()) * 0.01)
             print(f'changing Frequentie {float(msg.payload.decode()) * 0.01}')
             self.SendConfig()
         
-        if('test/frontend/octave' == msg.topic):
+        elif('test/frontend/octave' == msg.topic):
             self.__synth.SetOctave(msg.payload.decode())
             print(f"changing Octave to [{msg.payload.decode()}]")
             self.SendConfig()
 
-        if('test/frontend' == msg.topic):
+        elif('test/frontend' == msg.topic):
             self.SendConfig()
             print(f"sending config to new user")
         

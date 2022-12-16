@@ -1,4 +1,5 @@
 from synthesizer import Player, Synthesizer, Waveform
+import time
 
 class Synthesize:
 	def __init__(self):
@@ -72,3 +73,4 @@ class Synthesize:
 			for note in self.__notes:
 				self.__wave._osc1._volume = float(self.getVolume())
 				self.__player.play_wave(self.__wave.generate_constant_wave(note, self.__frequentie))
+				#time.sleep(self.__frequentie)
