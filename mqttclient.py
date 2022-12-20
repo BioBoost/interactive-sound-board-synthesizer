@@ -6,24 +6,21 @@ import json
 class MQTT:
     #init class MQTT
     def __init__(self, broker , port , stopseconds, synth):
+        #devices
         self.__availableDevices = []
         self.__activeDevices = []
-        self.__topics = []
+        #average of the sensor values
         self.__unfiltered_values = []
-        self.__values = []
-        self.__currentDevice = 0
-        self.__currentMAC = ""
-
         self.__settingAVG = 10
-        self.__gettingAVG = False
 
-        self.__starttime = 0
-        self.__currenttime = 0
-
-        self.__readStatus = False
+        #mqtt with esp
+        self.__currentDevice = 0
         self.__status = False
+        #instantie van de synthesizer class
         self.__synth = synth
+        #instantie van de paho mqtt class
         self.__client = mqtt.Client()
+        #connect to broker
         self.__client.connect(broker, port, stopseconds)
 
     def ActivateDevice(self , device):
@@ -31,55 +28,44 @@ class MQTT:
             self.devicesTopics(device)
             self.__activeDevices.append(device)
             self.__availableDevices.remove(device)
-            #time.sleep(1)
+            time.sleep(0.5)
 
     def devicesTopics(self,device):
         #sub to all device topics
-        #print(f'connecting to topics of {device}')
         self.subscribe(f'test/{device}/sensor')
         return self
 
     def sensorValues(self):
-        #if(len(self.__activeDevices) != 0):
-            #print(f'current length {len(self.__unfiltered_values)}')
-        #self.__currenttime = time.time()
-
         if(self.__currentDevice >= len(self.__activeDevices)):
                 self.__currentDevice = 0
 
         if(self.__status == False and len(self.__activeDevices) != 0):
-            #self.__starttime = time.time()
             self.sensorStart(self.__activeDevices[self.__currentDevice])
             self.__status = True
 
-        if(len(self.__unfiltered_values) == self.__settingAVG):#and self.__readStatus == True
+        if(len(self.__unfiltered_values) == self.__settingAVG):
             if(self.__currentDevice == len(self.__activeDevices)):
                 self.__currentDevice = 0
-            #self.__readStatus = False
             self.sensorStop(self.__activeDevices[self.__currentDevice])
             print('stopped reading values')
             print(f'the values {self.__unfiltered_values}')
             self.sensorAVG()
-            #time.sleep(1)
+            time.sleep(0.001)
         
     def sensorAVG(self):
-        self.__gettingAVG = True
         avg = 0
-        #print("getting avg")
+        print("getting avg")
         #dit is nodig om te avg te kunnen berekenen
         for j in range(0, len(self.__unfiltered_values)):
             self.__unfiltered_values[j] = float(self.__unfiltered_values[j])
         avg = round(np.average(self.__unfiltered_values),2)
         print(f'avg is: {avg}')
-        #print(self.__currentDevice)
         self.__synth.SortNotes(avg,self.__currentDevice)
-        #self.sensorStop(device)
         self.__unfiltered_values.clear()
         self.__currentDevice += 1
         #reset values
         self.__status = False
         avg = 0
-        self.__gettingAVG = False
         time.sleep(0.0001)
 
     def sensorStart(self,device):
@@ -111,6 +97,7 @@ class MQTT:
         time.sleep(0.001)
 
     def unSubscribe(self, *topics):
+        #deze functie wordt niet gebruikt maar kan handig zijn voor later
         for topic in topics:
             print(f'unsubscribing from {topic}')
             self.__client.unsubscribe(topic)
@@ -141,39 +128,35 @@ class MQTT:
             print(f"changing wave to {msg.payload.decode()}")
             self.SendConfig()
 
+        #message to change vomule of the synth
         elif('test/frontend/volume' == msg.topic):
             self.__synth.setVolume(float(msg.payload.decode()) * 0.01)
             print(f'changing volume {float(msg.payload.decode()) * 0.01}')
             self.SendConfig()
 
+        #message to change frequency of the synth
         elif('test/frontend/frequency' == msg.topic):
             self.__synth.setFrequentie(float(msg.payload.decode()) * 0.01)
             print(f'changing Frequentie {float(msg.payload.decode()) * 0.01}')
             self.SendConfig()
         
+        #message to change octave of the synth
         elif('test/frontend/octave' == msg.topic):
             self.__synth.SetOctave(msg.payload.decode())
             print(f"changing Octave to [{msg.payload.decode()}]")
             self.SendConfig()
 
+        #message to publish the current config to the frontends
         elif('test/frontend' == msg.topic):
             self.SendConfig()
             print(f"sending config to new user")
         
-    def getTopics(self):
-        return self.__topics
-
     def getDevices(self):
         return self.__activeDevices
-
-    def getValues(self):
-        return self.__values
 
     def getAvailableDevices(self):
         return self.__availableDevices
 
-    def getSynth(self):
-        return self.__synth
 
     def start(self):
         self.__client.loop_start()
