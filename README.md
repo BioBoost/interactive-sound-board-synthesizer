@@ -1,6 +1,6 @@
 # sound board interactive audio
 
-made by [[<img src="https://github.com/TristanDeLil.png" width="25">Tristan De Lil](https://github.com/TristanDeLil)
+made by [<img src="https://github.com/TristanDeLil.png" width="25">Tristan De Lil](https://github.com/TristanDeLil)
 
 ## introduction
 
