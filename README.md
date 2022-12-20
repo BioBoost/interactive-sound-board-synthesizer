@@ -1,5 +1,7 @@
 # sound board interactive audio
 
+made by [DenTristan](https://github.com/TristanDeLil)
+
 ## introduction
 
 This is the synthesizer and main program of the project.
@@ -8,6 +10,7 @@ This is the synthesizer and main program of the project.
 
 You must first connect your bluetooth device first then activate the activate you pulseaudio demons. 
 After that start the main.py program before you turn on the esps and make sure it's the first to connect to the accespoint or network.
+Run the python script nokia.py in the testsound folder if you wanne test you sound quality.
 
 ### installation & setup
 
@@ -110,9 +113,9 @@ if done correctly your bluetooth device should connect automatically with your p
 
 ### some usefull links
 ```text
-https://raspberrypihq.com/how-to-connect-your-raspberry-pi-to-wifi/
-https://www.tomshardware.com/how-to/static-ip-raspberry-pi
-https://linuxhint.com/setup-bluetooth-raspberry-pi/
+[wifi setup](https://raspberrypihq.com/how-to-connect-your-raspberry-pi-to-wifi/)
+[static ip](https://www.tomshardware.com/how-to/static-ip-raspberry-pi)
+[bluetooth](https://linuxhint.com/setup-bluetooth-raspberry-pi/)
 ```
 
 ## code
@@ -175,9 +178,6 @@ while(True):
     mqtt.sensorValues()
     #play the current notes
     synth.PlayNotes()
-```
-
-```python
 ```
 
 ### mqttclient.py
