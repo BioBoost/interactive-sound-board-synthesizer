@@ -107,7 +107,6 @@ class MQTT:
          print(f"Connected with result code {rc}")
 
     def on_message(self ,client, userdata, msg):
-        #sensor message from mqtt
         #online device message from mqtt
         if('test/devices/' == msg.topic):
             if msg.payload.decode() not in self.__availableDevices:
@@ -116,8 +115,9 @@ class MQTT:
                 print(f"device [{msg.payload.decode()}] is online")
                 self.SendConfig()
 
-        if(f'sensor' in msg.topic and self.__status == True): #and self.__status == True
-                if(len(self.__unfiltered_values) != self.__settingAVG):#and self.__readStatus == True
+        #sensor message from mqtt
+        if(f'sensor' in msg.topic and self.__status == True):
+                if(len(self.__unfiltered_values) != self.__settingAVG):
                    self.__unfiltered_values.append(msg.payload.decode())
                    print(f"value [{msg.payload.decode()}] received from sensor")
                 time.sleep(0.001)
@@ -157,9 +157,7 @@ class MQTT:
     def getAvailableDevices(self):
         return self.__availableDevices
 
-
     def start(self):
         self.__client.loop_start()
-        # we call from client object , the on_connect method and we overwrited
         self.__client.on_connect = self.on_connect
         self.__client.on_message = self.on_message
