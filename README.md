@@ -85,7 +85,7 @@ protocol websockets
 
 test websocket connection via MQTT explorer
 
-[!image](/img/ws.PNG)
+![image](/img/ws.PNG)
 
 ### connecting to the accespoint on the other raspberry pi / or your own network
 
