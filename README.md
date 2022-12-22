@@ -52,8 +52,42 @@ pip install numpy
 pulseaudio -k
 pulseaudio -D
 ```
+#### installing mosquitto broker
 
-#### connecting to the accespoint on the other raspberry pi / or your own network
+```bash
+sudo apt install -y mosquitto mosquitto-clients
+```
+### enable mosquitto broker
+
+```bash
+sudo systemctl enable mosquitto.service
+sudo systemctl status mosquitto.service
+```
+
+Name of the broker:
+```bash
+hostname -I
+```
+Normal mqtt broker port is 1883.
+
+#### allow websocket on the broker
+
+```bash
+sudo nano /etc/mosquitto/mosquitto.conf
+```
+
+Add websocket port
+
+```bash
+listener 8080
+protocol websockets
+```
+
+test websocket connection via MQTT explorer
+
+[!image](/img/ws.PNG)
+
+### connecting to the accespoint on the other raspberry pi / or your own network
 
 #### Add network 
 ```bash
@@ -73,7 +107,7 @@ ctrl + x
 sudo reboot
 ```
 
-### get static ip address
+#### get static ip address
 
 ```bash
 sudo nano /etc/dhcpcd.conf
