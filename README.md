@@ -41,6 +41,22 @@ apt install portaudio19-dev
 pip install pyaudio
 ```
 
+portaudio seems to fail to install on Ubuntu 20.04. You can download the source [here](http://files.portaudio.com/download.html) and compile it yourself.
+
+```bash
+./configure && make
+sudo make install
+sudo ldconfig
+```
+
+You will also need to install
+
+```bash
+sudo apt-get install python3-pyaudio
+```
+
+Now you can install `pyaudio`.
+
 #### install mqtt and numpy
 ```bash
 pip install paho-mqtt
