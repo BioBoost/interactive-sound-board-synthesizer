@@ -1,5 +1,6 @@
 from synthesizer import Player, Synthesizer, Waveform
 import threading
+import time
 
 notes = [
   523.2,
@@ -17,11 +18,12 @@ notes = [
 ]
 
 class Sequencer:
-  def __init__(self, size):
+  def __init__(self):
     self.player = Player()
     self.bpm = 120
     self.wave_form = Waveform.sine
-    self.sequence = [None] * size
+    self.sequence = []
+    self.mutex = threading.Lock()
 
   def start(self):
     self.player.open_stream()
@@ -34,9 +36,19 @@ class Sequencer:
   def set_bpm(self, bpm):
     self.bpm = bpm
 
-  def set_note(self, index, note):
-    if index < len(self.sequence) and note < len(notes):
-      self.sequence[index] = notes[note]
+  # def set_note(self, index, note):
+  #   if index < len(self.sequence) and note < len(notes):
+  #     self.sequence[index] = notes[note]
+
+  def set_sequence(self, noteIndices=[]):
+    self.mutex.acquire()
+
+    self.sequence = []
+    for i in noteIndices:
+      if i < len(notes):
+        self.sequence.append(notes[i])
+
+    self.mutex.release()
 
   def stop(self):
     self.keep_playing = False
@@ -48,7 +60,13 @@ class Sequencer:
   def sequencer(self):
     i = 0
     while self.keep_playing:
+      self.mutex.acquire()
       if (len(self.sequence) > 0):
-        if self.sequence[i] != None:
-          self.player.play_wave(self.synthesizer.generate_constant_wave(self.sequence[i], 60.0/self.bpm))
+        note = self.sequence[i]
         i = (i + 1) % len(self.sequence)
+        self.mutex.release()
+        if note != None:
+          self.player.play_wave(self.synthesizer.generate_constant_wave(note, 60.0/self.bpm))
+      else:
+        self.mutex.release()
+        time.sleep(60.0/self.bpm)

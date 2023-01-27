@@ -9,7 +9,7 @@ class DeviceStatus(Enum):
   IDLE = 1              # No updates yet, just registered
   UPDATING = 3          # Publish is send, waiting for update
   UPDATED = 4           # Received update
-  TIMED_OUT = 5
+  INVALID = 6           # Received a 0 distance (which is invalid) or device timed out, whatever
 
 # IDLE (or UPDATED) => UPDATING => UPDATED or TIMED_OUT
 
@@ -43,27 +43,24 @@ class SonicApi:
 
   def _on_connected(self, client, userdata, flags, rc):
     print("Connected to MQTT broker")
-    self._publish_controller_active()
 
   def _on_message(self, client, userdata, msg):
     print("Received message from broker @ " + msg.topic)
+
     jsonData = json.loads(msg.payload)
 
-    # Detect if new device
-    self.mutex.acquire()
-
-    if msg.topic == self.baseTopic + "/modules/hello":
+    if msg.topic == self.baseTopic + "/modules/hello":        # New device or just alive message
       self._register_device(jsonData)
-      # self.registeredDevices[jsonData['id']] = Device(id=jsonData['id'])
     elif msg.topic == self.baseTopic + "/modules/measurements":
       device = self._get_device_by_id(jsonData['id'])
       if device != None:
-        device.distance = jsonData['distance']
-        device.state = DeviceStatus.UPDATED
+        if (jsonData['distance'] > 0):
+          device.distance = jsonData['distance']
+          device.state = DeviceStatus.UPDATED
+        else:
+          device.state = DeviceStatus.INVALID
       else:
         print("Got update from unknown device")
-
-    self.mutex.release()
 
   # The device update system just updates the next device in line
   # You can call this method slow or fast but it can never update
@@ -71,56 +68,41 @@ class SonicApi:
   def request_next_device_update(self, timeoutMs=2000):
     if len(self.registeredDevices) == 0: return
 
-    self.mutex.acquire()
+    # self.mutex.acquire()
     
     # First we check if device is still awaiting update
     if self.registeredDevices[self.iUpdateIndex].state == DeviceStatus.UPDATING:
       elapsedTime = time.perf_counter() - self.updateRequestTime
       if (1000*elapsedTime) > timeoutMs:
-        self.registeredDevices[self.iUpdateIndex].state = DeviceStatus.TIMED_OUT
+        self.registeredDevices[self.iUpdateIndex].state = DeviceStatus.INVALID
     else:
       self.iUpdateIndex = (self.iUpdateIndex + 1) % len(self.registeredDevices)
       device = self.registeredDevices[self.iUpdateIndex]
-      if device.state != DeviceStatus.TIMED_OUT:
-        message = { "cmd": "measure" }
-        device.state = DeviceStatus.UPDATING
-        self.client.publish(self.baseTopic + "/modules/" + device.id + "/commands", json.dumps(message))
-        self.updateRequestTime = time.perf_counter()
+      # if device.state != DeviceStatus.TIMED_OUT:
+      message = { "cmd": "measure" }
+      device.state = DeviceStatus.UPDATING
+      self.client.publish(self.baseTopic + "/modules/" + device.id + "/commands", json.dumps(message))
+      self.updateRequestTime = time.perf_counter()
     
-    self.mutex.release()
+    # self.mutex.release()
+
+  def _register_device(self, json):
+    existing = self._get_device_by_id(json['id'])
+
+    if existing == None:
+      self.mutex.acquire()    # Because we change the actual device list !
+      self.registeredDevices.append(Device(id=json['id']))
+      self.mutex.release()
 
   def _get_device_by_id(self, id):
-    # TODO: Crashes with TypeError: 'module' object is not subscriptable
-    # devices = list(filter(lambda d : d.id == json['id'], self.registeredDevices))
-    # if len(devices) == 0:
-    #   return None
-    # else:
-    #   return devices[0]
-
     for device in self.registeredDevices:
       if device.id == id:
         return device
     
     return None
-
-  def _register_device(self, json):
-    existing = self._get_device_by_id(json['id'])
-
-    if existing != None:
-      existing[0].state = DeviceStatus.IDLE
-    else:
-      self.registeredDevices.append(Device(id=json['id']))
   
   def get_registered_devices(self):
     return self.registeredDevices
-
-  def _publish_controller_active(self):
-    message = {
-      "ip": "_here_comes_ip",
-      "version": "v0.1",
-      "who": "synthesizer"
-    }
-    self.client.publish(self.baseTopic, json.dumps(message))
 
   def _subscribe_to_modules(self):
     print("Subscribing to modules topic")
