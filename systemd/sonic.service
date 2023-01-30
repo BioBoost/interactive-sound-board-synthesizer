@@ -1,0 +1,19 @@
+# Setup (install) using: cp ./sonic.service /etc/systemd/system
+# Autostart: systemctl enable sonic.service
+# Start|Stop|Restart: systemctl start|stop|restart sonic.service
+# Status: systemctl status sonic.service 
+
+[Unit]
+Description=Sonic Sound Controller Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python /home/pi/sonic/main.py
+User=pi
+Group=pi
+Restart=always
+RestartSec=500ms
+
+[Install]
+WantedBy=multi-user.target
