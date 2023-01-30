@@ -3,6 +3,7 @@ import notes as nt
 import time
 import signal
 import sonic_api as sa
+import sys
 
 notes = nt.BASIC_NOTES        # Choose notes here
 
@@ -23,8 +24,14 @@ sequencer = sq.Sequencer(4, notes)
 sequencer.set_bpm(360)
 sequencer.start()
 
-sonics = sa.SonicApi("192.168.1.99", "sonic")
-sonics.connect()
+sonics = sa.SonicApi("192.168.1.88", "sonic")
+
+try:
+  sonics.connect()
+except:
+  print("Failed to connect to broker")
+  sequencer.stop()
+  sys.exit(-1)
 
 deviceMapping = {
   'esp32-sonic-f10f7c': ('note', 0),
