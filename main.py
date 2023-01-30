@@ -44,6 +44,8 @@ def on_device_update(id, distance):
       index = config[1]
       noteIndex = int(len(notes) * distance / 100.0)
       sequencer.set_note(index, noteIndex)
+  else:
+    print("No device mapping for " + id)
 
 sonics.set_update_callback(on_device_update)
 
