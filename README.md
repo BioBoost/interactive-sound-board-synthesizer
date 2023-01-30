@@ -2,6 +2,12 @@
 
 made by [<img src="https://github.com/TristanDeLil.png" width="25">Tristan De Lil](https://github.com/TristanDeLil)
 
+## Project Repos
+
+* [Sonic Sequencer](https://github.com/BioBoost/sonic-sequencer)
+* [Sonic ESP Module Firmware](https://github.com/BioBoost/sonic-esp-module)
+* [Sonic Visuals](https://github.com/BioBoost/sonic-visuals)
+
 ## introduction
 
 This is the synthesizer and main program of the project.
