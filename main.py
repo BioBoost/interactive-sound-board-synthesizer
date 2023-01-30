@@ -23,7 +23,7 @@ sequencer = sq.Sequencer(4, notes)
 sequencer.set_bpm(360)
 sequencer.start()
 
-sonics = sa.SonicApi("141.105.126.62", "sonic")
+sonics = sa.SonicApi("127.0.0.1", "sonic")
 sonics.connect()
 
 deviceMapping = {
