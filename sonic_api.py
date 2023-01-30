@@ -119,7 +119,9 @@ class SonicApi:
       device.distance = distance
       device.set_state(DeviceStatus.UPDATED)
       print("Received distance of " + str(distance))
-      # TODO: Schedule call to callback for device update
+    # TODO: Schedule call to callback for device update
+    else:
+      device.set_state(DeviceStatus.INVALID)
 
   def __on_message(self, client, userdata, msg):
     print("Received unknown message from broker @ " + msg.topic)

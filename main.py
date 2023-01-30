@@ -33,4 +33,4 @@ sonics.connect()
 while keep_listening:
   sonics.request_next_device_update()
   print(sonics.registeredDevices)
-  time.sleep(1)
+  time.sleep(0.1)
