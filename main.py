@@ -1,21 +1,36 @@
-#import the MQTT and Synthesize class
-from mqttclient import MQTT
-from synthesize import Synthesize
+import sequencer as sq
+import notes
+import time
+import signal
+import sonic_api as sa
 
-#synthesizer class
-synth = Synthesize()
+keep_listening = True
 
-#mqtt connect to broker
-mqtt = MQTT("pi-of-terror",1883,60,synth)
-#sub to topics of frontend and devices
-mqtt.subscribe("test/devices/","test/frontend/volume",'test/frontend/octave','test/frontend/wave','test/frontend/frequency','test/frontend')
-#start de mqtt loop
-mqtt.start()
-#send Huidige config
-mqtt.SendConfig()
+def handler(signum, frame):
+  global keep_listening
 
-while(True):
-    #get values en activate sensor
-    mqtt.sensorValues()
-    #play the current notes
-    synth.PlayNotes()
+  msg = "Ctrl-c was pressed. Closing the app ..."
+  print(msg, end="", flush=True)
+  keep_listening = False
+  sequencer.stop()
+  exit()
+ 
+signal.signal(signal.SIGINT, handler)
+
+sequencer = sq.Sequencer(4)
+sequencer.set_bpm(360)
+# sequencer.start()
+
+sonics = sa.SonicApi("141.105.126.62", "sonic")
+sonics.connect()
+
+
+# sequencer.set_note(0, 65)
+# sequencer.set_note(1, 84)
+# sequencer.set_note(2, 34)
+# sequencer.set_note(3, 14)
+
+while keep_listening:
+  sonics.request_next_device_update()
+  print(sonics.registeredDevices)
+  time.sleep(1)
