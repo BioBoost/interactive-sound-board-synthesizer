@@ -24,7 +24,7 @@ sequencer = sq.Sequencer(4, notes)
 sequencer.set_bpm(360)
 sequencer.start()
 
-sonics = sa.SonicApi("192.168.1.88", "sonic")
+sonics = sa.SonicApi("192.168.1.99", "sonic")
 
 try:
   sonics.connect()

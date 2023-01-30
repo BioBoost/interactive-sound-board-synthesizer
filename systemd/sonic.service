@@ -8,7 +8,7 @@ Description=Sonic Sound Controller Service
 After=network.target
 
 [Service]
-Type=simple
+Type=exec
 ExecStart=/usr/bin/python /home/pi/sonic/main.py
 User=pi
 Group=pi
