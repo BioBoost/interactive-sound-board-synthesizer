@@ -1,16 +1,16 @@
 from synthesizer import Player, Synthesizer, Waveform
 import threading
 import time
-import notes
 
 class Sequencer:
-  def __init__(self, sequenceSize):
+  def __init__(self, sequenceSize, notes):
     self.mutex = threading.Lock()
     self.player = Player()
     self.set_bpm(120)
     self.set_wave_form(Waveform.sine)
     self.size = sequenceSize
     self.sequence = [None] * sequenceSize
+    self.notes = notes
 
   def start(self):
     self.player.open_stream()
@@ -22,9 +22,9 @@ class Sequencer:
     self.bpm = bpm
 
   def set_note(self, sequenceIndex, noteIndex):
-    if sequenceIndex < len(self.sequence) and noteIndex < len(notes.NOTES):
+    if sequenceIndex < len(self.sequence) and noteIndex < len(self.notes):
       self.mutex.acquire()
-      self.sequence[sequenceIndex] = notes.NOTES[noteIndex]
+      self.sequence[sequenceIndex] = self.notes[noteIndex]
       self.mutex.release()
 
   def set_wave_form(self, waveForm):
