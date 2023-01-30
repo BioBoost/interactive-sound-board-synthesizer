@@ -12,11 +12,34 @@ class DeviceStatus(Enum):
   UPDATED = 4           # Received update
   INVALID = 6           # Received a 0 distance (which is invalid) or device timed out, whatever
 
-@dataclass
 class Device:
   id: str = ""
   distance: int = 0
   state: DeviceStatus = DeviceStatus.IDLE
+
+  def __init__(self, id):
+    self.id = id
+    self.mutex = Lock()
+
+  def set_state(self, state):
+    self.mutex.acquire()
+    self.state = state
+    self.mutex.release()
+
+  def get_state(self):
+    self.mutex.acquire()
+    state = self.state
+    self.mutex.release()
+    return state
+
+  def __str__(self):
+    self.mutex.acquire()
+    output = "{" + str(self.id) + "} " + str(self.distance) + "cm | state = " + str(self.state)
+    self.mutex.release()
+    return output
+
+  def __repr__(self):
+    return self.__str__()
 
 class SonicApi:
   def __init__(self, broker, baseTopic, brokerPort=1883):
@@ -26,6 +49,8 @@ class SonicApi:
     self.iDeviceUpdate = 0
     self.registeredDevices = []
     self.updateRequestTime = 0
+    self.mutex = Lock()     # This is just for the array registeredDevices (adding or getting items)
+                            # Devices themselves are protected internally
 
   def connect(self):
     self.client = mqtt.Client()
@@ -38,10 +63,10 @@ class SonicApi:
   # You can call this method slow or fast but it can never update
   # faster than the devices provide updates.
   def request_next_device_update(self, timeoutMs=2000):
-    if len(self.registeredDevices) == 0: return
+    if self.__get_number_of_devices() == 0: return
 
     # First we check if device is still awaiting update
-    device = self.registeredDevices[self.iDeviceUpdate]
+    device = self.__get_device_by_index(self.iDeviceUpdate)
 
     # if device.state == DeviceStatus.UPDATING:
     #   elapsedTime = time.perf_counter() - self.updateRequestTime
@@ -49,12 +74,13 @@ class SonicApi:
     #     print("Timed out with " + str(int(1000*elapsedTime)))
     #     device.state = DeviceStatus.INVALID
     # else:
-    if device.state != DeviceStatus.UPDATING:
-      self.iDeviceUpdate = (self.iDeviceUpdate + 1) % len(self.registeredDevices)
-      device = self.registeredDevices[self.iDeviceUpdate]
+    if device.get_state() != DeviceStatus.UPDATING:
+    # if device.state != DeviceStatus.UPDATING:
+      self.iDeviceUpdate = (self.iDeviceUpdate + 1) % self.__get_number_of_devices()
+      device = self.__get_device_by_index(self.iDeviceUpdate)
       # if device.state != DeviceStatus.TIMED_OUT:
       message = { "cmd": "measure" }
-      device.state = DeviceStatus.UPDATING
+      device.set_state(DeviceStatus.UPDATING)
       self.client.publish(self.baseTopic + "/modules/" + device.id + "/commands", json.dumps(message))
       self.updateRequestTime = time.perf_counter()
 
@@ -76,14 +102,8 @@ class SonicApi:
     device = self.__get_device_by_id(id)
     if device == None:
       self.__register_device(Device(id=id))
-    elif device.state == DeviceStatus.INVALID:
-      device.state == DeviceStatus.IDLE
-
-  def __register_device(self, device):
-    print("Registering new device")
-    # self.mutex.acquire()    # Because we change the actual device list !
-    self.registeredDevices.append(device)
-    # self.mutex.release()
+    elif device.get_state() == DeviceStatus.INVALID:
+      device.set_state(DeviceStatus.IDLE)
 
   def __on_measurement_message(self, client, userdata, msg):
     jsonData = json.loads(msg.payload)
@@ -97,7 +117,7 @@ class SonicApi:
     distance = jsonData['distance']
     if distance > 0:
       device.distance = distance
-      device.state = DeviceStatus.UPDATED
+      device.set_state(DeviceStatus.UPDATED)
       print("Received distance of " + str(distance))
       # TODO: Schedule call to callback for device update
 
@@ -112,7 +132,6 @@ class SonicApi:
 
     client.publish('sonic/modules/esp32-sonic-e36270/commands', '{ "cmd": "measure" }')
 
-
   def __subscribe_to_modules(self):
     print("Subscribing to modules topic")
     self.client.subscribe(self.baseTopic + "/modules/hello")
@@ -120,9 +139,31 @@ class SonicApi:
     self.client.subscribe(self.baseTopic + "/modules/measurements")
     self.client.message_callback_add(self.baseTopic + "/modules/measurements", self.__on_measurement_message)
 
+  def __register_device(self, device):
+    print("Registering new device")
+    self.mutex.acquire()    # Because we change the actual device list !
+    self.registeredDevices.append(device)
+    self.mutex.release()
+
+  def __get_number_of_devices(self):
+    self.mutex.acquire()
+    count = len(self.registeredDevices)
+    self.mutex.release()
+    return count
+
+  def __get_device_by_index(self, index):
+    device = None
+    self.mutex.acquire()
+    if index < len(self.registeredDevices):
+      device = self.registeredDevices[index]
+    self.mutex.release()
+    return device
+
   def __get_device_by_id(self, id):
-    for device in self.registeredDevices:
-      if device.id == id:
-        return device
-    
-    return None
+    device = None
+    self.mutex.acquire()
+    for dev in self.registeredDevices:
+      if dev.id == id:
+        device = dev
+    self.mutex.release()
+    return device
